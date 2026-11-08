@@ -1,235 +1,43 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Señal BTC / ETH</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#f3f5f4; --panel:#ffffff; --ink:#14201d; --mute:#5d6b67; --line:#d9e0dd;
-  --buy:#0c8f6b; --sell:#c8412f; --wait:#b7791f; --track:#e4e9e7;
-  color-scheme:light;
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --bg:#0f1715; --panel:#16211e; --ink:#e8f0ed; --mute:#92a39d; --line:#26352f;
-    --buy:#34d3a0; --sell:#ff7a66; --wait:#e8b04a; --track:#223029; color-scheme:dark;
-  }
-}
-*{box-sizing:border-box}
-html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;
-  padding:max(16px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom));line-height:1.45}
-main{max-width:560px;margin:0 auto}
-h1{font-size:1.1rem;font-weight:600;margin:4px 0 14px}
-.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-button.chip{font:inherit;font-size:.9rem;padding:8px 14px;border-radius:999px;border:1px solid var(--line);
-  background:var(--panel);color:var(--ink);cursor:pointer}
-button.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-button.chip:focus-visible{outline:2px solid var(--buy);outline-offset:2px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:12px}
-.price{font-size:2rem;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.chg{font-variant-numeric:tabular-nums;font-size:.95rem;margin-left:8px}
-.verdict{font-size:2.6rem;font-weight:800;letter-spacing:-.03em;margin:6px 0 2px}
-.verdict.buy{color:var(--buy)} .verdict.sell{color:var(--sell)} .verdict.wait{color:var(--wait)}
-.sub{color:var(--mute);font-size:.92rem;margin:0 0 16px}
-.gauge{position:relative;height:10px;border-radius:6px;background:linear-gradient(90deg,var(--sell),var(--track) 50%,var(--buy));margin:8px 0 6px}
-.mark{position:absolute;top:-6px;width:4px;height:22px;border-radius:2px;background:var(--ink);transform:translateX(-50%);transition:left .5s ease}
-.scale{display:flex;justify-content:space-between;color:var(--mute);font-size:.8rem}
-table{width:100%;border-collapse:collapse;font-size:.92rem}
-td{padding:9px 0;border-top:1px solid var(--line);vertical-align:top}
-td:first-child{font-weight:600;white-space:nowrap;padding-right:10px}
-td.v{font-variant-numeric:tabular-nums;color:var(--mute);text-align:right;white-space:nowrap}
-.pill{display:inline-block;min-width:34px;text-align:center;border-radius:6px;font-weight:600;font-size:.82rem;padding:1px 6px;margin-right:6px}
-.pill.p{background:color-mix(in srgb,var(--buy) 18%,transparent);color:var(--buy)}
-.pill.n{background:color-mix(in srgb,var(--sell) 18%,transparent);color:var(--sell)}
-.pill.z{background:var(--track);color:var(--mute)}
-.foot{color:var(--mute);font-size:.8rem;margin-top:14px}
-.err{color:var(--sell)}
-@media (prefers-reduced-motion:reduce){.mark{transition:none}}
-</style>
-</head>
-<body>
-<main>
-  <h1>Señal de compra o venta</h1>
-  <div class="row" id="assets" role="group" aria-label="Activo">
-    <button class="chip" data-a="BTC" aria-pressed="true">Bitcoin</button>
-    <button class="chip" data-a="ETH" aria-pressed="false">Ethereum</button>
-  </div>
-  <div class="row" id="tfs" role="group" aria-label="Temporalidad">
-    <button class="chip" data-t="15m" aria-pressed="false">15 min</button>
-    <button class="chip" data-t="1h" aria-pressed="true">1 hora</button>
-    <button class="chip" data-t="4h" aria-pressed="false">4 horas</button>
-    <button class="chip" data-t="1d" aria-pressed="false">1 día</button>
-  </div>
-
-  <section class="card" aria-live="polite">
-    <div><span class="price" id="price">—</span><span class="chg" id="chg"></span></div>
-    <div class="verdict wait" id="verdict">Cargando…</div>
-    <p class="sub" id="sub">Consultando datos públicos de Binance.</p>
-    <div class="gauge"><div class="mark" id="mark" style="left:50%"></div></div>
-    <div class="scale"><span>Vender</span><span>Esperar</span><span>Comprar</span></div>
-  </section>
-
-  <section class="card">
-    <table id="tbl"></table>
-  </section>
-
-  <p class="foot" id="foot"></p>
-  <p class="foot">Es un análisis técnico automático con fines informativos. No es asesoramiento financiero y no garantiza resultados.</p>
-</main>
-
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Señal BTC / ETH · Spot</title><style>
+:root{--bg:#f3f5f4;--panel:#fff;--ink:#14201d;--muted:#62716b;--line:#d9e0dd;--buy:#078a65;--sell:#c34335;--warn:#ae741c;--grid:#e8eeeb} @media(prefers-color-scheme:dark){:root{--bg:#0f1715;--panel:#16211e;--ink:#e8f0ed;--muted:#9aaba4;--line:#2a3b34;--buy:#36d5a0;--sell:#ff8474;--warn:#e5b257;--grid:#25352e}}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,sans-serif;padding:16px}main{max-width:680px;margin:auto}h1{font-size:1.2rem;margin:3px 0 13px}h2{font-size:1.05rem;margin:0 0 12px}.row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:9px}button{font:inherit;cursor:pointer}.chip{border:1px solid var(--line);border-radius:30px;padding:8px 14px;background:var(--panel);color:var(--ink)}.chip[aria-pressed=true]{background:var(--ink);color:var(--bg)}.card{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:17px;margin:13px 0}.price{font-size:2rem;font-weight:800;font-variant-numeric:tabular-nums}.change{margin-left:8px}.verdict{font-size:2rem;font-weight:800;margin:6px 0}.buy{color:var(--buy)}.sell{color:var(--sell)}.wait{color:var(--warn)}.muted,.small{color:var(--muted)}.small{font-size:.85rem}.bar{height:10px;background:linear-gradient(90deg,var(--sell),var(--grid) 50%,var(--buy));border-radius:10px;position:relative;margin-top:14px}.marker{position:absolute;width:4px;height:22px;top:-6px;background:var(--ink);border-radius:3px;transform:translateX(-50%)}.scale{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.metric{padding:12px;border:1px solid var(--line);border-radius:11px}.metric b{display:block;font-size:.9rem}.metric span{display:block;font-variant-numeric:tabular-nums;margin-top:4px}.metric small{display:block;color:var(--muted);margin-top:3px}.chart-wrap{position:relative;height:330px;touch-action:pan-y}canvas{width:100%;height:100%;display:block}.chart-controls{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}.chart-controls button{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:5px 11px;border-radius:9px}details{border-top:1px solid var(--line);padding:11px 0}details:first-of-type{border-top:0}summary{cursor:pointer;font-weight:700;list-style-position:outside}summary span{font-weight:400;color:var(--muted);margin-left:7px}details p{margin:8px 0 0}.notice{border-left:4px solid var(--warn);padding-left:10px}.error{color:var(--sell);font-weight:700}.badge{font-size:.8rem;border:1px solid var(--line);border-radius:8px;padding:2px 7px;display:inline-block}.foot{font-size:.8rem;color:var(--muted);padding-bottom:20px}#tooltip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:.76rem;display:none;max-width:210px;box-shadow:0 2px 10px #0002} @media(max-width:390px){.price{font-size:1.7rem}.grid{grid-template-columns:1fr}.card{padding:13px}}
+</style></head><body><main><h1>📈 Señal BTC / ETH <span class="badge">SPOT · Análisis inicial</span></h1><div class="row" id="assets"><button class="chip" data-v="BTC" aria-pressed="true">Bitcoin</button><button class="chip" data-v="ETH" aria-pressed="false">Ethereum</button></div><div class="row" id="times"><button class="chip" data-v="15m" aria-pressed="false">15 min</button><button class="chip" data-v="1h" aria-pressed="true">1 hora</button><button class="chip" data-v="4h" aria-pressed="false">4 horas</button><button class="chip" data-v="1d" aria-pressed="false">1 día</button></div>
+<section class="card" aria-live="polite"><div><strong id="price" class="price">—</strong><span id="change" class="change"></span></div><div id="verdict" class="verdict wait">Cargando…</div><div id="explain" class="muted">Consultando Binance…</div><div class="bar"><div id="marker" class="marker" style="left:50%"></div></div><div class="scale"><span>Riesgo bajista</span><span>Neutral</span><span>Sesgo alcista</span></div><p id="status" class="small"></p><p id="closed" class="small"></p></section>
+<section class="card"><div class="chart-controls"><h2>Velas japonesas</h2><div><button id="less" title="Mostrar más velas">−</button> <button id="more" title="Mostrar menos velas">+</button> <button id="reset">Restablecer</button></div></div><div class="chart-wrap" id="chartWrap"><canvas id="chart" aria-label="Gráfico de velas, EMA 20, EMA 50 y volumen"></canvas><div id="tooltip"></div></div><p class="small">Verde: vela alcista · Rojo: bajista · Líneas: EMA 20 y EMA 50 · Barras inferiores: volumen. Tocá una vela para ver sus datos. Deslizá horizontalmente para recorrer el historial.</p></section>
+<section class="card"><h2>Indicadores · Tocá para entenderlos</h2><div id="indicators"></div></section>
+<section class="card"><h2>Niveles de precio y riesgo</h2><div id="levels" class="grid"></div><p id="levelsNote" class="small"></p></section>
+<section class="card"><h2>Conclusión del análisis</h2><p id="conclusion">Cargando información…</p><p class="small notice">Las zonas de entrada y objetivos son referencias técnicas, no órdenes ni garantías. VENDER indica riesgo bajista, no que debas liquidar tus tenencias.</p></section>
+<p class="foot" id="foot"></p><p class="foot">Datos públicos Binance Spot (BTCUSDT / ETHUSDT). Sin claves API. Análisis técnico informativo; no reemplaza tu decisión ni garantiza resultados.</p></main>
 <script>
-(function(){
-  var HOSTS = ['https://api.binance.com', 'https://data-api.binance.vision'];
-  var REFRESH_MS = 15000;
-  var asset = 'BTC', tf = '1h', timer = null;
-
-  function $(id){ return document.getElementById(id); }
-
-  async function getJSON(path){
-    for (var i = 0; i < HOSTS.length; i++){
-      try {
-        var r = await fetch(HOSTS[i] + path);
-        if (r.ok) return await r.json();
-      } catch (e) {}
-    }
-    throw new Error('No se pudo conectar con Binance');
-  }
-
-  /* ---------- indicadores ---------- */
-  function ema(arr, p){
-    var k = 2 / (p + 1), out = [arr[0]];
-    for (var i = 1; i < arr.length; i++) out.push(arr[i] * k + out[i - 1] * (1 - k));
-    return out;
-  }
-  function sma(arr, p){
-    var s = arr.slice(-p); return s.reduce(function(a, b){ return a + b; }, 0) / s.length;
-  }
-  function std(arr, p){
-    var s = arr.slice(-p), m = sma(arr, p);
-    return Math.sqrt(s.reduce(function(a, b){ return a + (b - m) * (b - m); }, 0) / s.length);
-  }
-  function rsi(c, p){
-    var g = 0, l = 0, i, d;
-    for (i = 1; i <= p; i++){ d = c[i] - c[i - 1]; if (d >= 0) g += d; else l -= d; }
-    g /= p; l /= p;
-    for (i = p + 1; i < c.length; i++){
-      d = c[i] - c[i - 1];
-      g = (g * (p - 1) + (d > 0 ? d : 0)) / p;
-      l = (l * (p - 1) + (d < 0 ? -d : 0)) / p;
-    }
-    return l === 0 ? 100 : 100 - 100 / (1 + g / l);
-  }
-
-  function analyze(c){
-    var last = c[c.length - 1], rows = [], score = 0;
-
-    var r = rsi(c, 14), v;
-    if (r < 30) v = 2; else if (r < 40) v = 1; else if (r > 70) v = -2; else if (r > 60) v = -1; else v = 0;
-    score += v;
-    rows.push(['RSI (14)', r.toFixed(1), v,
-      r < 30 ? 'Sobreventa: posible rebote' : r < 40 ? 'Algo débil, cerca de sobreventa' :
-      r > 70 ? 'Sobrecompra: riesgo de caída' : r > 60 ? 'Algo fuerte, cerca de sobrecompra' : 'Zona neutral']);
-
-    var e12 = ema(c, 12), e26 = ema(c, 26);
-    var macd = e12.map(function(x, i){ return x - e26[i]; });
-    var sig = ema(macd, 9);
-    var h = macd[macd.length - 1] - sig[sig.length - 1];
-    var hp = macd[macd.length - 2] - sig[sig.length - 2];
-    v = h > 0 ? (h > hp ? 1 : 0) : (h < hp ? -1 : 0);
-    score += v;
-    rows.push(['MACD', h.toFixed(2), v,
-      h > 0 ? (h > hp ? 'Impulso alcista creciendo' : 'Alcista, pero perdiendo fuerza') :
-              (h < hp ? 'Impulso bajista creciendo' : 'Bajista, pero perdiendo fuerza')]);
-
-    var m20 = ema(c, 20), m50 = ema(c, 50);
-    var a = m20[m20.length - 1], b = m50[m50.length - 1];
-    v = a > b ? 1 : -1;
-    if (last > a && last > b && v === 1) v = 2;
-    if (last < a && last < b && v === -1) v = -2;
-    score += v;
-    rows.push(['Tendencia (EMA 20/50)', (a > b ? '20 > 50' : '20 < 50'), v,
-      v >= 1 ? 'Tendencia alcista' : 'Tendencia bajista']);
-
-    var mid = sma(c, 20), sd = std(c, 20), up = mid + 2 * sd, lo = mid - 2 * sd;
-    v = last < lo ? 1 : last > up ? -1 : 0;
-    score += v;
-    rows.push(['Bandas de Bollinger', last < lo ? 'bajo la banda' : last > up ? 'sobre la banda' : 'dentro', v,
-      last < lo ? 'Precio por debajo del rango normal' : last > up ? 'Precio por encima del rango normal' : 'Precio dentro del rango normal']);
-
-    return { score: score, rows: rows };
-  }
-
-  /* ---------- interfaz ---------- */
-  function fmt(n){
-    return '$' + Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-
-  function render(price, chgPct, res){
-    var s = res.score, max = 6;
-    var cls = s >= 3 ? 'buy' : s <= -3 ? 'sell' : 'wait';
-    var txt = s >= 3 ? 'Comprar' : s <= -3 ? 'Vender' : 'Esperar';
-    var sub = s >= 3 ? 'La mayoría de los indicadores apuntan al alza.' :
-              s <= -3 ? 'La mayoría de los indicadores apuntan a la baja.' :
-              s > 0 ? 'Leve inclinación a comprar, sin confirmación clara.' :
-              s < 0 ? 'Leve inclinación a vender, sin confirmación clara.' : 'Las señales se compensan entre sí.';
-    $('price').textContent = fmt(price);
-    var ch = $('chg');
-    ch.textContent = (chgPct >= 0 ? '+' : '') + chgPct.toFixed(2) + '% en 24 h';
-    ch.style.color = chgPct >= 0 ? 'var(--buy)' : 'var(--sell)';
-    var vd = $('verdict'); vd.textContent = txt; vd.className = 'verdict ' + cls;
-    $('sub').textContent = sub + ' Puntaje: ' + (s > 0 ? '+' : '') + s + ' de ±' + max + '.';
-    $('mark').style.left = (50 + (Math.max(-max, Math.min(max, s)) / max) * 50) + '%';
-
-    var html = '';
-    res.rows.forEach(function(r){
-      var p = r[2] > 0 ? 'p' : r[2] < 0 ? 'n' : 'z';
-      var label = (r[2] > 0 ? '+' : '') + r[2];
-      html += '<tr><td>' + r[0] + '</td><td><span class="pill ' + p + '">' + label + '</span>' + r[3] +
-              '</td><td class="v">' + r[1] + '</td></tr>';
-    });
-    $('tbl').innerHTML = html;
-    $('foot').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-AR') + ' · se refresca cada 15 s · datos: Binance';
-    $('foot').classList.remove('err');
-  }
-
-  async function update(){
-    var sym = asset + 'USDT';
-    try {
-      var out = await Promise.all([
-        getJSON('/api/v3/klines?symbol=' + sym + '&interval=' + tf + '&limit=200'),
-        getJSON('/api/v3/ticker/24hr?symbol=' + sym)
-      ]);
-      var closes = out[0].map(function(k){ return parseFloat(k[4]); });
-      render(parseFloat(out[1].lastPrice), parseFloat(out[1].priceChangePercent), analyze(closes));
-    } catch (e) {
-      $('foot').textContent = 'No se pudieron obtener los datos. Reintentando en unos segundos.';
-      $('foot').classList.add('err');
-    }
-  }
-
-  function start(){
-    clearInterval(timer);
-    $('verdict').textContent = 'Cargando…'; $('verdict').className = 'verdict wait';
-    update();
-    timer = setInterval(update, REFRESH_MS);
-  }
-
-  function bind(boxId, attr, setter){
-    $(boxId).addEventListener('click', function(e){
-      var b = e.target.closest('button'); if (!b) return;
-      Array.prototype.forEach.call($(boxId).children, function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-      setter(b.getAttribute(attr)); start();
-    });
-  }
-  bind('assets', 'data-a', function(v){ asset = v; });
-  bind('tfs', 'data-t', function(v){ tf = v; });
-  document.addEventListener('visibilitychange', function(){ if (!document.hidden) update(); });
-  start();
+(()=>{'use strict';
+const HOSTS=['https://data-api.binance.vision','https://api.binance.com'];let asset='BTC',tf='1h',seq=0,busy=false,timer=null,latest=null,visible=65,offset=0,selection=null;const $=id=>document.getElementById(id);
+const money=n=>Number.isFinite(n)?Number(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';const fmt=n=>Number.isFinite(n)?money(n)+' USDT':'—';const pct=n=>Number.isFinite(n)?(n>=0?'+':'')+n.toFixed(2)+'%':'—';
+async function request(path){let errors=[];for(const host of HOSTS){const ctrl=new AbortController(),id=setTimeout(()=>ctrl.abort(),8500);try{const r=await fetch(host+path,{signal:ctrl.signal,cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);return await r.json()}catch(e){errors.push(e.message)}finally{clearTimeout(id)}}throw Error('No hay conexión con Binance ('+errors.join(', ')+')')}
+function ema(a,p){let out=[],k=2/(p+1),v=a[0];for(let i=0;i<a.length;i++){v=i===0?a[i]:a[i]*k+v*(1-k);out.push(v)}return out}
+function rsi(a,p=14){if(a.length<=p)return NaN;let g=0,l=0;for(let i=1;i<=p;i++){let d=a[i]-a[i-1];g+=Math.max(d,0);l+=Math.max(-d,0)}g/=p;l/=p;for(let i=p+1;i<a.length;i++){let d=a[i]-a[i-1];g=(g*(p-1)+Math.max(d,0))/p;l=(l*(p-1)+Math.max(-d,0))/p}return l===0?(g===0?50:100):100-100/(1+g/l)}
+function analyze(ks){const c=ks.map(x=>x.c),n=c.length,last=c[n-1],e20=ema(c,20),e50=ema(c,50),e12=ema(c,12),e26=ema(c,26),macd=e12.map((x,i)=>x-e26[i]),signal=ema(macd,9),hist=macd.map((x,i)=>x-signal[i]),r=rsi(c),prevR=rsi(c.slice(0,-1)),h=hist.at(-1),hp=hist.at(-2),avg=c.slice(-20).reduce((a,b)=>a+b,0)/20,sd=Math.sqrt(c.slice(-20).reduce((a,b)=>a+(b-avg)**2,0)/20),upper=avg+2*sd,lower=avg-2*sd;let score=0,rows=[];
+let rv=r<30?(r>prevR?2:1):r<40?(r>prevR?1:0):r>70?(r<prevR?-2:-1):r>60?(r<prevR?-1:0):0;score+=rv;rows.push({name:'RSI (14)',value:r.toFixed(1),points:rv,description:`El RSI mide la fuerza relativa de subidas y bajadas (0 a 100). Ahora está ${r.toFixed(1)} y ${r>prevR?'sube':'no sube'} respecto de la vela anterior. Bajo 30 indica sobreventa; sobre 70, sobrecompra. No son órdenes automáticas.`,watch:'Observá si gira al alza desde niveles bajos o pierde fuerza desde niveles altos; confirmalo con tendencia y volumen.'});
+let mv=h>0?(h>hp?1:0):(h<hp?-1:0);score+=mv;rows.push({name:'MACD (12/26/9)',value:h.toFixed(2),points:mv,description:`Histograma ${h.toFixed(2)}; ${h>0?'positivo':'negativo'}, ${h>hp?'mejora':'empeora'} respecto de la vela anterior. El MACD compara dos medias y una línea de señal.`,watch:'Un cruce y un histograma que se expande pueden indicar impulso; el indicador reacciona con retraso.'});
+let trend=e20.at(-1)>e50.at(-1)?1:-1,tv=trend;if(last>e20.at(-1)&&last>e50.at(-1)&&trend===1)tv=2;if(last<e20.at(-1)&&last<e50.at(-1)&&trend===-1)tv=-2;score+=tv;rows.push({name:'Tendencia EMA 20/50',value:trend>0?'EMA20 > EMA50':'EMA20 < EMA50',points:tv,description:`EMA20: ${fmt(e20.at(-1))}. EMA50: ${fmt(e50.at(-1))}. Son promedios que dan más peso a precios recientes. ${trend>0?'Sesgo alcista':'Sesgo bajista'} en esta temporalidad.`,watch:'Mirar la ubicación del precio respecto de ambas EMA y posibles cruces; no confundir tendencia con entrada inmediata.'});
+let bv=last<lower?1:last>upper?-1:0;score+=bv;rows.push({name:'Bandas de Bollinger (20, 2)',value:last<lower?'Bajo banda inferior':last>upper?'Sobre banda superior':'Dentro de bandas',points:bv,description:`Banda inferior: ${fmt(lower)}. Superior: ${fmt(upper)}. Representan la media simple de 20 velas ±2 desviaciones estándar.`,watch:'Estar fuera de las bandas no obliga a revertir; en tendencias fuertes puede permanecer allí.'});
+let vols=ks.map(x=>x.v),vavg=vols.slice(-21,-1).reduce((a,b)=>a+b,0)/20,vr=vavg>0?vols.at(-1)/vavg:NaN;rows.push({name:'Volumen',value:Number.isFinite(vr)?vr.toFixed(2)+'× promedio':'—',points:null,description:'Compara el volumen de la última vela con el promedio de las 20 anteriores. Una vela abierta acumula volumen durante su formación.',watch:'Para comparar una vela abierta, tener en cuenta cuánto tiempo lleva transcurrido. El volumen se muestra como contexto y no suma puntos.'});
+return {score,rows,e20,e50,r,h,trend,vr,price:last};}
+function label(s){return s>=4?'COMPRAR':s>=2?'POSIBLE COMPRA':s<=-4?'VENDER':s<=-2?'POSIBLE VENTA':'ESPERAR'}
+function tone(s){return s>=2?'buy':s<=-2?'sell':'wait'}
+function pivotLevels(ks){let closed=ks.slice(0,-1),price=ks.at(-1).c,range=closed.slice(-100),pivHi=[],pivLo=[];for(let i=2;i<range.length-2;i++){if(range[i].h>range[i-1].h&&range[i].h>range[i-2].h&&range[i].h>=range[i+1].h&&range[i].h>=range[i+2].h)pivHi.push(range[i].h);if(range[i].l<range[i-1].l&&range[i].l<range[i-2].l&&range[i].l<=range[i+1].l&&range[i].l<=range[i+2].l)pivLo.push(range[i].l)}let support=pivLo.filter(x=>x<price).sort((a,b)=>b-a)[0],resistance=pivHi.filter(x=>x>price).sort((a,b)=>a-b)[0];return {support,resistance,price}}
+function render(ks,ticker){let a=analyze(ks),closed=analyze(ks.slice(0,-1)),score=a.score,lab=label(score),ch=Number(ticker.priceChangePercent),price=Number(ticker.lastPrice);$('price').textContent='$'+money(price);$('change').textContent=pct(ch)+' · 24 h';$('change').className='change '+(ch>=0?'buy':'sell');$('verdict').textContent=lab;$('verdict').className='verdict '+tone(score);$('explain').textContent=`Sesgo técnico ${score>0?'alcista':score<0?'bajista':'equilibrado'}: ${score>0?'+':''}${score} de ±6 puntos. ${lab==='COMPRAR'||lab==='VENDER'?'Varios indicadores coinciden; revisá los niveles antes de actuar.':lab==='ESPERAR'?'Señales mixtas o insuficientes para una dirección clara.':'Hay una inclinación inicial que merece seguimiento.'}`;$('marker').style.left=(50+score/6*50)+'%';$('status').textContent='Última vela: '+(ks.at(-1).closeTime>Date.now()?'EN FORMACIÓN · señal provisional':'cerrada')+'. La cotización puede diferir del cierre usado para los indicadores.';$('closed').textContent='Señal de la última vela cerrada: '+label(closed.score)+' ('+(closed.score>0?'+':'')+closed.score+').';
+$('indicators').innerHTML=a.rows.map(x=>`<details><summary>${x.name} <span>${x.value}${x.points===null?'':` · ${x.points>0?'+':''}${x.points} puntos`}</span></summary><p>${x.description}</p><p><b>Qué observar:</b> ${x.watch}</p></details>`).join('');
+let levels=pivotLevels(ks),s=levels.support,r=levels.resistance,risk=Number.isFinite(s)?price-s:NaN,reward=Number.isFinite(r)?r-price:NaN,rr=risk>0&&reward>0?reward/risk:NaN,entry=Number.isFinite(s)?`${fmt(s)} – ${fmt(s*1.005)}`:'Sin zona fiable';let cards=[['Soporte cercano',fmt(s),'Pivote mínimo reciente bajo el precio'],['Resistencia cercana',fmt(r),'Pivote máximo reciente sobre el precio'],['Zona a observar',entry,'Franja orientativa de 0,5% sobre soporte; no es orden de compra'],['Invalidación orientativa',Number.isFinite(s)?fmt(s*0.995):'—','0,5% debajo del soporte; no es stop-loss optimizado'],['Objetivo técnico',fmt(r),'Primera resistencia detectada'],['Beneficio/riesgo estimado',Number.isFinite(rr)?rr.toFixed(2)+':1':'No calculable','Desde precio actual hasta resistencia / soporte']];$('levels').innerHTML=cards.map(x=>`<div class="metric"><b>${x[0]}</b><span>${x[1]}</span><small>${x[2]}</small></div>`).join('');$('levelsNote').textContent='Niveles calculados con pivotes de velas CERRADAS de las últimas 100 velas. Si no hay pivote adecuado, se muestra “—”. Los márgenes de 0,5% son convenciones visuales, no niveles validados.';
+let macdText=a.h>0?'MACD con histograma positivo':'MACD con histograma negativo',rsiText=a.r<35?'RSI bajo (posible sobreventa, sin garantía de rebote)':a.r>65?'RSI alto (posible sobrecompra, sin garantía de caída)':'RSI en zona intermedia';$('conclusion').textContent=`${asset} en ${tf}: ${lab.toLowerCase()}. ${a.trend>0?'La EMA 20 supera a la EMA 50':'La EMA 20 está debajo de la EMA 50'}; ${macdText} y ${rsiText}. ${Number.isFinite(s)?'Soporte cercano: '+fmt(s)+'. ':'No se identificó soporte cercano. '}${Number.isFinite(r)?'Resistencia: '+fmt(r)+'. ':'No se identificó resistencia cercana. '}Esta es una lectura inicial, no una orden: verificá gráfico, volumen y riesgo antes de decidir.`;
+$('foot').textContent='Última consulta correcta: '+new Date().toLocaleString('es-AR')+' · actualización cada 15 s mientras la pantalla esté activa · Binance Spot.';$('foot').classList.remove('error');latest={ks,a};draw();}
+async function update(){if(busy)return;busy=true;const my=seq,sym=asset+'USDT',period=tf;try{const [raw,ticker]=await Promise.all([request('/api/v3/klines?symbol='+sym+'&interval='+period+'&limit=200'),request('/api/v3/ticker/24hr?symbol='+sym)]);if(my!==seq)return;const ks=raw.map(k=>({t:Number(k[0]),o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5],closeTime:+k[6]}));if(ks.length<80||ks.some(k=>![k.o,k.h,k.l,k.c,k.v].every(Number.isFinite)))throw Error('Datos de velas inválidos');render(ks,ticker)}catch(e){if(my===seq){$('foot').textContent='Sin actualización: '+e.message+'. Se reintentará. Los datos visibles pueden estar desactualizados.';$('foot').classList.add('error');$('status').textContent='⚠️ DATOS NO ACTUALIZADOS: no operar basándose solo en esta pantalla.'}}finally{busy=false;if(my!==seq)queueMicrotask(update)}}
+function start(){seq++;latest=null;offset=0;selection=null;$('verdict').textContent='Cargando…';$('status').textContent='Consultando mercado…';$('closed').textContent='';$('foot').textContent='';update()}
+function bind(id,fn){$(id).addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b)return;for(const x of $(id).querySelectorAll('button'))x.setAttribute('aria-pressed',String(x===b));fn(b.dataset.v);start()})}bind('assets',v=>asset=v);bind('times',v=>tf=v);
+$('less').onclick=()=>{visible=Math.min(190,visible+15);draw()};$('more').onclick=()=>{visible=Math.max(20,visible-15);draw()};$('reset').onclick=()=>{visible=65;offset=0;selection=null;draw()};
+function draw(){if(!latest)return;const {ks,a}=latest,canvas=$('chart'),wrap=$('chartWrap'),dpr=window.devicePixelRatio||1,w=wrap.clientWidth,h=wrap.clientHeight;canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);const cs=getComputedStyle(document.body),col=k=>cs.getPropertyValue(k).trim(),padL=8,padR=58,top=13,chartBottom=h*.73,volTop=h*.79,volBottom=h-23;let end=Math.max(visible,ks.length-offset),begin=Math.max(0,end-visible);end=Math.min(ks.length,end);const sub=ks.slice(begin,end);if(!sub.length)return;const min=Math.min(...sub.map(k=>k.l)),max=Math.max(...sub.map(k=>k.h)),extra=(max-min)*.08||1,low=min-extra,high=max+extra,plotW=w-padL-padR,cw=plotW/sub.length,y=p=>top+(high-p)/(high-low)*(chartBottom-top),vmax=Math.max(...sub.map(k=>k.v),1);
+ctx.strokeStyle=col('--grid');ctx.fillStyle=col('--muted');ctx.font='10px system-ui';ctx.textAlign='left';for(let i=0;i<=4;i++){let py=top+i*(chartBottom-top)/4;ctx.beginPath();ctx.moveTo(padL,py);ctx.lineTo(w-padR+4,py);ctx.stroke();ctx.fillText(money(high-i*(high-low)/4),w-padR+7,py+3)}
+for(let i=0;i<sub.length;i++){let k=sub[i],x=padL+(i+.5)*cw,green=k.c>=k.o;color=green?col('--buy'):col('--sell');var color;ctx.strokeStyle=color;ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(x,y(k.h));ctx.lineTo(x,y(k.l));ctx.stroke();ctx.fillRect(x-Math.max(1,cw*.32),Math.min(y(k.o),y(k.c)),Math.max(1.3,cw*.64),Math.max(1,Math.abs(y(k.o)-y(k.c))));ctx.globalAlpha=.65;ctx.fillRect(x-Math.max(1,cw*.32),volBottom-(k.v/vmax)*(volBottom-volTop),Math.max(1.3,cw*.64),(k.v/vmax)*(volBottom-volTop));ctx.globalAlpha=1}
+function line(vals,color){ctx.strokeStyle=color;ctx.lineWidth=1.6;ctx.beginPath();sub.forEach((k,i)=>{let x=padL+(i+.5)*cw,py=y(vals[begin+i]);if(i===0)ctx.moveTo(x,py);else ctx.lineTo(x,py)});ctx.stroke();ctx.lineWidth=1}line(a.e20,'#e4a33e');line(a.e50,'#7297f5');ctx.font='11px system-ui';ctx.fillStyle='#e4a33e';ctx.fillText('EMA 20',padL+6,top+12);ctx.fillStyle='#7297f5';ctx.fillText('EMA 50',padL+66,top+12);ctx.fillStyle=col('--muted');ctx.fillText('Volumen',padL+4,volTop+11);for(let i=0;i<4;i++){let ix=Math.min(sub.length-1,Math.floor(i*(sub.length-1)/3));ctx.fillText(new Date(sub[ix].t).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'})+' '+new Date(sub[ix].t).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}),padL+ix*cw,h-6)}
+if(selection!==null&&selection>=begin&&selection<end){let i=selection-begin,x=padL+(i+.5)*cw;ctx.strokeStyle=col('--muted');ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x,volBottom);ctx.stroke();ctx.setLineDash([]);let k=ks[selection],tt=$('tooltip');tt.style.display='block';tt.textContent=`${new Date(k.t).toLocaleString('es-AR')} · O ${money(k.o)} · H ${money(k.h)} · L ${money(k.l)} · C ${money(k.c)} · Vol ${k.v.toFixed(2)}`;tt.style.left=Math.min(Math.max(0,x-85),w-210)+'px';tt.style.top='35px'}else $('tooltip').style.display='none';canvas.dataset.begin=begin;canvas.dataset.cw=cw;canvas.dataset.pad=padL}
+let touchX=null;$('chart').addEventListener('pointerdown',e=>{touchX=e.clientX});$('chart').addEventListener('pointerup',e=>{if(touchX===null||!latest)return;let delta=e.clientX-touchX;if(Math.abs(delta)>25){offset=Math.max(0,Math.min(200-visible,offset+Math.round(delta/Number($('chart').dataset.cw))));selection=null}else{let rect=$('chart').getBoundingClientRect(),i=Math.floor((e.clientX-rect.left-Number($('chart').dataset.pad))/Number($('chart').dataset.cw));selection=Math.max(0,Math.min(latest.ks.length-1,Number($('chart').dataset.begin)+i))}touchX=null;draw()});window.addEventListener('resize',draw);document.addEventListener('visibilitychange',()=>{if(!document.hidden)update()});timer=setInterval(()=>{if(!document.hidden)update()},15000);start();
 })();
-</script>
-</body>
-</html>
+</script></body></html>
